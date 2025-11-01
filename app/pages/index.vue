@@ -72,10 +72,10 @@ const features = [
 /**
  * Formata valor monetário
  */
-function formatCurrency(value: number, currency: Currency = Currency.USDT): string {
+function formatCurrency(value: number, currency: Currency = Currency.SOL): string {
   const symbols: Record<Currency, string> = {
     [Currency.SOL]: '◎',
-    [Currency.USDT]: '$',
+    [Currency.SOL]: '$',
     [Currency.BRL]: 'R$',
   }
   return `${symbols[currency]}${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`

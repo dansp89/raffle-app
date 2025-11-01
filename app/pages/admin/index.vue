@@ -114,7 +114,7 @@ function formatCurrency(amount: number, currency: Currency): string {
         <CardHeader>
           <CardDescription>{{ t('admin.totalCollected') }}</CardDescription>
           <CardTitle class="text-2xl font-bold">
-            {{ formatCurrency(stats.totalCollected, Currency.USDT) }}
+            {{ formatCurrency(stats.totalCollected, Currency.SOL) }}
           </CardTitle>
         </CardHeader>
       </Card>
@@ -123,7 +123,7 @@ function formatCurrency(amount: number, currency: Currency): string {
         <CardHeader>
           <CardDescription>{{ t('admin.totalPrizesPaid') }}</CardDescription>
           <CardTitle class="text-2xl font-bold">
-            {{ formatCurrency(stats.totalPrizesPaid, Currency.USDT) }}
+            {{ formatCurrency(stats.totalPrizesPaid, Currency.SOL) }}
           </CardTitle>
         </CardHeader>
       </Card>

@@ -28,9 +28,50 @@ export enum RaffleStatus {
  * @enum {string}
  */
 export enum Currency {
+  // Criptomoedas
   SOL = 'SOL',
-  USDT = 'USDT',
-  BRL = 'BRL',
+  // Moedas Fiat - Américas
+  USD = 'USD', // Dólar Americano
+  BRL = 'BRL', // Real Brasileiro
+  CAD = 'CAD', // Dólar Canadense
+  MXN = 'MXN', // Peso Mexicano
+  ARS = 'ARS', // Peso Argentino
+  CLP = 'CLP', // Peso Chileno
+  COP = 'COP', // Peso Colombiano
+  PEN = 'PEN', // Sol Peruano
+  // Moedas Fiat - Europa
+  EUR = 'EUR', // Euro
+  GBP = 'GBP', // Libra Esterlina
+  CHF = 'CHF', // Franco Suíço
+  PLN = 'PLN', // Zloty Polonês
+  RUB = 'RUB', // Rublo Russo
+  TRY = 'TRY', // Lira Turca
+  SEK = 'SEK', // Coroa Sueca
+  NOK = 'NOK', // Coroa Norueguesa
+  DKK = 'DKK', // Coroa Dinamarquesa
+  // Moedas Fiat - Ásia
+  JPY = 'JPY', // Iene Japonês
+  CNY = 'CNY', // Yuan Chinês
+  KRW = 'KRW', // Won Sul-Coreano
+  INR = 'INR', // Rupia Indiana
+  IDR = 'IDR', // Rupia Indonésia
+  THB = 'THB', // Baht Tailandês
+  SGD = 'SGD', // Dólar de Singapura
+  HKD = 'HKD', // Dólar de Hong Kong
+  MYR = 'MYR', // Ringgit Malaio
+  PHP = 'PHP', // Peso Filipino
+  VND = 'VND', // Dong Vietnamita
+  // Moedas Fiat - Oceania
+  AUD = 'AUD', // Dólar Australiano
+  NZD = 'NZD', // Dólar Neozelandês
+  // Moedas Fiat - África
+  ZAR = 'ZAR', // Rand Sul-Africano
+  NGN = 'NGN', // Naira Nigeriana
+  EGP = 'EGP', // Libra Egípcia
+  // Moedas Fiat - Oriente Médio
+  AED = 'AED', // Dirham dos Emirados Árabes
+  SAR = 'SAR', // Riyal Saudita
+  ILS = 'ILS', // Novo Shekel Israelense
 }
 
 /**
@@ -69,6 +110,10 @@ export interface RaffleMedia {
   filename?: string
   /** Tamanho do arquivo em bytes */
   size?: number
+  /** URL da thumbnail (para vídeos) */
+  thumbnail?: string
+  /** Título do vídeo (para vídeos de URL) */
+  title?: string
 }
 
 export interface Raffle {
@@ -120,6 +165,14 @@ export interface Raffle {
   solscanUrl: string | null
   /** Total de tickets vendidos */
   totalTicketsSold: number
+  /** Quantidade total de tickets disponíveis (null = infinito) */
+  totalTickets?: number | null
+  /** Configuração de sorteio */
+  drawConfiguration?: DrawConfiguration
+  /** Configuração de seleção de tickets */
+  ticketSelectionConfiguration?: TicketSelectionConfiguration
+  /** Configuração de reserva de tickets */
+  reservationConfiguration?: ReservationConfiguration
   /** Timestamp de criação */
   createdAt: Date
   /** Timestamp de atualização */
@@ -254,6 +307,79 @@ export enum WalletType {
 export enum Blockchain {
   SOLANA = 'solana',
   // Futuras: Ethereum, BSC, etc.
+}
+
+/**
+ * Enum para métodos de seleção de tickets
+ * @enum {string}
+ */
+export enum TicketSelectionMethod {
+  /** Números aleatórios com botões rápidos */
+  RANDOM_WITH_BUTTONS = 'random_with_buttons',
+  /** Números expostos para escolha manual */
+  EXPOSED_NUMBERS = 'exposed_numbers',
+}
+
+/**
+ * Enum para métodos de sorteio
+ * @enum {string}
+ */
+export enum DrawMethod {
+  /** Loteria Federal */
+  FEDERAL_LOTTERY = 'federal_lottery',
+  /** Sorteador interno */
+  INTERNAL_DRAWER = 'internal_drawer',
+  /** Post em rede social */
+  SOCIAL_MEDIA_POST = 'social_media_post',
+  /** Telegram (bot/canal) */
+  TELEGRAM = 'telegram',
+  /** Organizador manual */
+  ORGANIZER = 'organizer',
+}
+
+/**
+ * Interface para configuração de sorteio
+ * @interface DrawConfiguration
+ */
+export interface DrawConfiguration {
+  /** Métodos de sorteio selecionados (pode ser múltiplos) */
+  methods: DrawMethod[]
+  /** Token do bot Telegram (se TELEGRAM estiver selecionado) */
+  telegramBotToken?: string
+  /** URL do canal/grupo do Telegram (se TELEGRAM estiver selecionado) */
+  telegramChannelId?: string
+  /** Regras livres de sorteio (texto customizado) */
+  customRules?: string
+}
+
+/**
+ * Interface para configuração de seleção de tickets
+ * @interface TicketSelectionConfiguration
+ */
+export interface TicketSelectionConfiguration {
+  /** Método de seleção */
+  method: TicketSelectionMethod
+  /** Se números expostos devem ser randomizados ou não */
+  randomizeExposed?: boolean
+  /** Botões rápidos disponíveis (quantidades pré-definidas) */
+  quickButtons?: number[]
+  /** Número mínimo de tickets (apenas para números expostos) */
+  minTicketNumber?: number
+  /** Número máximo de tickets (apenas para números expostos) */
+  maxTicketNumber?: number | null
+}
+
+/**
+ * Interface para configuração de reserva de tickets
+ * @interface ReservationConfiguration
+ */
+export interface ReservationConfiguration {
+  /** Prazo mínimo para reserva (em minutos) */
+  minimumReservationMinutes?: number
+  /** Quantidade mínima de tickets por reserva */
+  minimumReservationQuantity?: number
+  /** Quantidade máxima de tickets por reserva */
+  maximumReservationQuantity?: number | null
 }
 
 /**
@@ -401,6 +527,10 @@ export interface RaffleFormData {
   description: string
   /** URL da imagem do prêmio */
   imageUrl: string
+  /** Lista de imagens da rifa */
+  images: RaffleMedia[]
+  /** Lista de vídeos da rifa */
+  videos: RaffleMedia[]
   /** Valor do prêmio */
   prizeAmount: number
   /** Moeda do prêmio */
@@ -411,6 +541,14 @@ export interface RaffleFormData {
   durationDays: number
   /** Se é a rifa principal */
   isMain: boolean
+  /** Quantidade total de tickets (null = infinito) */
+  totalTickets?: number | null
+  /** Configuração de sorteio */
+  drawConfiguration?: DrawConfiguration
+  /** Configuração de seleção de tickets */
+  ticketSelectionConfiguration?: TicketSelectionConfiguration
+  /** Configuração de reserva de tickets */
+  reservationConfiguration?: ReservationConfiguration
 }
 
 /**

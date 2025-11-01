@@ -160,7 +160,7 @@ function handleCreate() {
     walletAddresses: [],
     balances: [
       { currency: Currency.SOL, amount: 0, updatedAt: new Date() },
-      { currency: Currency.USDT, amount: 0, updatedAt: new Date() },
+      { currency: Currency.SOL, amount: 0, updatedAt: new Date() },
       { currency: Currency.BRL, amount: 0, updatedAt: new Date() },
     ],
     role: form.value.role,
@@ -282,7 +282,7 @@ function changeUserRole(user: User, newRole: UserRole) {
               <TableCell>
                 <div class="flex flex-col gap-1 text-xs">
                   <span>SOL: {{ formatBalance(user, Currency.SOL) }}</span>
-                  <span>USDT: {{ formatBalance(user, Currency.USDT) }}</span>
+                  <span>USDT: {{ formatBalance(user, Currency.SOL) }}</span>
                   <span>BRL: {{ formatBalance(user, Currency.BRL) }}</span>
                 </div>
               </TableCell>

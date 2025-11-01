@@ -50,7 +50,7 @@ const finishedRaffles = computed(() => {
 function formatCurrency(value: number, currency: Currency): string {
   const symbols: Record<Currency, string> = {
     [Currency.SOL]: '◎',
-    [Currency.USDT]: '$',
+    [Currency.SOL]: '$',
     [Currency.BRL]: 'R$',
   }
   return `${symbols[currency]}${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`

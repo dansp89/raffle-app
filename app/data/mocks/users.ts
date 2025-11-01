@@ -50,7 +50,7 @@ export const mockUsers: User[] = [
     ],
     balances: [
       { currency: Currency.SOL, amount: 50.5, updatedAt: new Date('2024-12-07T10:00:00Z') },
-      { currency: Currency.USDT, amount: 1250.75, updatedAt: new Date('2024-12-07T10:00:00Z') },
+      { currency: Currency.SOL, amount: 1250.75, updatedAt: new Date('2024-12-07T10:00:00Z') },
       { currency: Currency.BRL, amount: 5000.0, updatedAt: new Date('2024-12-07T10:00:00Z') },
     ],
     role: UserRole.ADMIN,
@@ -84,7 +84,7 @@ export const mockUsers: User[] = [
     ],
     balances: [
       { currency: Currency.SOL, amount: 12.3, updatedAt: new Date('2024-12-07T08:30:00Z') },
-      { currency: Currency.USDT, amount: 320.50, updatedAt: new Date('2024-12-07T08:30:00Z') },
+      { currency: Currency.SOL, amount: 320.50, updatedAt: new Date('2024-12-07T08:30:00Z') },
       { currency: Currency.BRL, amount: 1500.0, updatedAt: new Date('2024-12-07T08:30:00Z') },
     ],
     role: UserRole.CLIENT,
@@ -110,7 +110,7 @@ export const mockUsers: User[] = [
     ],
     balances: [
       { currency: Currency.SOL, amount: 25.8, updatedAt: new Date('2024-12-05T16:00:00Z') },
-      { currency: Currency.USDT, amount: 650.25, updatedAt: new Date('2024-12-05T16:00:00Z') },
+      { currency: Currency.SOL, amount: 650.25, updatedAt: new Date('2024-12-05T16:00:00Z') },
       { currency: Currency.BRL, amount: 350.0, updatedAt: new Date('2024-12-05T16:00:00Z') },
     ],
     role: UserRole.CLIENT,

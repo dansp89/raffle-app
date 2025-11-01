@@ -212,3 +212,55 @@ export function getVimeoThumbnail(url: string): string | null {
   // Retorna URL de thumbnail do Vimeo (serviço público vumbnail.com)
   return `https://vumbnail.com/${videoId}.jpg`
 }
+
+/**
+ * Obtém o título de um vídeo do YouTube via oEmbed API
+ * @param {string} url - URL do YouTube
+ * @returns {Promise<string | null>} Título do vídeo ou null
+ */
+export async function getYouTubeTitle(url: string): Promise<string | null> {
+  const videoId = extractYouTubeId(url)
+  if (!videoId)
+    return null
+
+  try {
+    // Usa oEmbed API do YouTube (não requer chave API)
+    const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`
+    const response = await fetch(oembedUrl)
+    if (!response.ok)
+      return null
+
+    const data = await response.json()
+    return data.title || null
+  }
+  catch (error) {
+    console.error('Erro ao buscar título do YouTube:', error)
+    return null
+  }
+}
+
+/**
+ * Obtém o título de um vídeo do Vimeo via oEmbed API
+ * @param {string} url - URL do Vimeo
+ * @returns {Promise<string | null>} Título do vídeo ou null
+ */
+export async function getVimeoTitle(url: string): Promise<string | null> {
+  const videoId = extractVimeoId(url)
+  if (!videoId)
+    return null
+
+  try {
+    // Usa oEmbed API do Vimeo
+    const oembedUrl = `https://vimeo.com/api/oembed.json?url=${encodeURIComponent(url)}`
+    const response = await fetch(oembedUrl)
+    if (!response.ok)
+      return null
+
+    const data = await response.json()
+    return data.title || null
+  }
+  catch (error) {
+    console.error('Erro ao buscar título do Vimeo:', error)
+    return null
+  }
+}
