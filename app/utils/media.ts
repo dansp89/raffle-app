@@ -28,6 +28,32 @@ export function extractYouTubeId(url: string): string | null {
 }
 
 /**
+ * Normaliza o origin para uma URL válida
+ * Converte IPv6 ([::]) para localhost e remove caracteres inválidos
+ * @param {string} origin - Origin a ser normalizado
+ * @returns {string} Origin normalizado ou string vazia
+ */
+function normalizeOrigin(origin: string): string {
+  if (!origin)
+    return ''
+
+  try {
+    const url = new URL(origin)
+    // Se o hostname contém colchetes (IPv6), converte para localhost
+    if (url.hostname.includes('[') && url.hostname.includes(']')) {
+      // Converte [::] ou [::1] para localhost
+      url.hostname = 'localhost'
+    }
+    // Retorna apenas origin (protocol + hostname + port se houver)
+    return url.origin
+  }
+  catch {
+    // Se não for uma URL válida, retorna vazio
+    return ''
+  }
+}
+
+/**
  * Converte uma URL do YouTube para formato embed
  * @param {string} url - URL do YouTube
  * @returns {string | null} URL do embed ou null
@@ -36,8 +62,33 @@ export function convertToYouTubeEmbed(url: string): string | null {
   const videoId = extractYouTubeId(url)
   if (!videoId)
     return null
+
   // Adiciona enablejsapi=1 para permitir controle via postMessage
-  return `https://www.youtube.com/embed/${videoId}?enablejsapi=1&origin=${typeof window !== 'undefined' ? window.location.origin : ''}`
+  // O origin deve ser a origem do site atual para segurança
+  let origin = ''
+  if (import.meta.client && typeof window !== 'undefined' && window.location) {
+    // Normaliza o origin para lidar com IPv6 ([::]) e outros casos
+    origin = normalizeOrigin(window.location.origin)
+  }
+  else if (import.meta.server) {
+    // Em SSR, tenta usar variável de ambiente pública
+    try {
+      const runtimeConfig = useRuntimeConfig()
+      const siteUrl = (runtimeConfig.public.siteUrl as string) || ''
+      origin = normalizeOrigin(siteUrl)
+    }
+    catch {
+      // Fallback caso useRuntimeConfig não esteja disponível
+      origin = ''
+    }
+  }
+
+  // Se origin estiver vazio, não adiciona o parâmetro (YouTube funciona sem ele)
+  if (origin) {
+    return `https://www.youtube.com/embed/${videoId}?enablejsapi=1&origin=${encodeURIComponent(origin)}`
+  }
+
+  return `https://www.youtube.com/embed/${videoId}?enablejsapi=1`
 }
 
 /**
