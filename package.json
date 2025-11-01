@@ -12,9 +12,9 @@
   },
   "scripts": {
     "build": "nuxt build",
-    "dev": "PORT=3060 nuxt dev",
+    "dev": "HOST=localhost PORT=3060 nuxt dev",
     "generate": "nuxt generate",
-    "preview": "PORT=3070 nuxt preview",
+    "preview": "HOST=localhost PORT=3070 nuxt preview",
     "postinstall": "nuxt prepare",
     "typecheck": "vue-tsc --noEmit",
     "lint": "eslint .",
