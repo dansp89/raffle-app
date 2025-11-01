@@ -5,8 +5,7 @@
 -->
 <script setup lang="ts">
 import type { RaffleMedia } from '~/types/raffle'
-import Plyr from 'plyr'
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import {
   detectMediaType,
   getEmbedUrl,
@@ -15,7 +14,6 @@ import {
   isVimeoEmbed,
   isYouTubeEmbed,
 } from '~/utils/media'
-import 'plyr/dist/plyr.css'
 
 interface Props {
   /** Mídia a ser renderizada */
@@ -47,6 +45,9 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>()
 
+// Importa Plyr apenas no cliente para evitar erros de SSR
+let Plyr: any = null
+
 /**
  * Referência para o elemento de vídeo
  */
@@ -60,7 +61,7 @@ const iframeRef = ref<HTMLIFrameElement | null>(null)
 /**
  * Instância do Plyr
  */
-let plyrInstance: Plyr | null = null
+let plyrInstance: any = null
 
 /**
  * Tipo de mídia detectado
@@ -68,15 +69,31 @@ let plyrInstance: Plyr | null = null
 const mediaType = ref(detectMediaType(props.media.url))
 
 /**
- * URL do embed processada
+ * URL do embed processada (computed para garantir atualização quando props mudarem)
  */
-const embedUrl = ref(getEmbedUrl(props.media.url))
+const embedUrl = computed(() => {
+  // Recalcula a URL do embed para garantir que o origin seja atualizado corretamente no cliente
+  return getEmbedUrl(props.media.url)
+})
 
 /**
  * Inicializa o Plyr para vídeos diretos
  */
-onMounted(() => {
-  if (mediaType.value === 'video-direct' && videoRef.value) {
+onMounted(async () => {
+  // Carrega Plyr apenas no cliente
+  if (import.meta.client && !Plyr) {
+    try {
+      const plyrModule = await import('plyr')
+      Plyr = plyrModule.default || plyrModule
+      await import('plyr/dist/plyr.css')
+    }
+    catch (error) {
+      console.error('Erro ao carregar Plyr:', error)
+      Plyr = null
+    }
+  }
+
+  if (mediaType.value === 'video-direct' && videoRef.value && Plyr) {
     plyrInstance = new Plyr(videoRef.value, {
       autoplay: props.autoplay,
       muted: props.muted,
@@ -91,16 +108,18 @@ onMounted(() => {
     }
 
     // Escuta eventos do Plyr
-    plyrInstance.on('ready', () => {
-      if (props.autoplay && plyrInstance) {
-        const playPromise = plyrInstance.play()
-        if (playPromise && typeof playPromise.catch === 'function') {
-          playPromise.catch((err: Error) => {
-            console.error('Autoplay bloqueado:', err.message)
-          })
+    if (plyrInstance && typeof plyrInstance.on === 'function') {
+      plyrInstance.on('ready', () => {
+        if (props.autoplay && plyrInstance && typeof plyrInstance.play === 'function') {
+          const playPromise = plyrInstance.play()
+          if (playPromise && typeof playPromise.catch === 'function') {
+            playPromise.catch((err: Error) => {
+              console.error('Autoplay bloqueado:', err.message)
+            })
+          }
         }
-      }
-    })
+      })
+    }
   }
   else if (props.onVideoRegister && mediaType.value === 'video-direct' && videoRef.value) {
     // Registra o elemento de vídeo mesmo sem Plyr (fallback)
