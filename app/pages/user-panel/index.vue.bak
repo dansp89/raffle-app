@@ -1,0 +1,316 @@
+<!--
+  @fileoverview Dashboard do usuário com estatísticas pessoais
+  @module pages/dashboard/index
+  @author Raffle System
+-->
+<script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+import { computed } from 'vue'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
+import { Button } from '~/components/ui/button'
+import { Badge } from '~/components/ui/badge'
+import { mockTickets } from '~/data/mocks/tickets'
+import { mockTransactions } from '~/data/mocks/transactions'
+import { mockRaffles } from '~/data/mocks/raffles'
+import { useAuth } from '~/composables/useAuth'
+import { TransactionType, TransactionStatus, Currency } from '~/types/raffle'
+
+const { t } = useI18n()
+const { user: currentUser } = useAuth()
+
+/**
+ * Meta tags
+ */
+useHead({
+  title: () => t('dashboard.title', 'Dashboard'),
+})
+
+definePageMeta({
+  layout: 'panel',
+})
+
+/**
+ * Estatísticas do usuário
+ */
+const stats = computed(() => {
+  const userId = currentUser.value?.id || ''
+  const userTickets = mockTickets.filter(t => t.userId === userId)
+  const userTransactions = mockTransactions.filter(tx => tx.userId === userId)
+  
+  const totalTickets = userTickets.length
+  const activeRafflesParticipated = new Set(userTickets.map(t => t.raffleId)).size
+  
+  const totalSpent = userTransactions
+    .filter(tx => tx.type === TransactionType.TICKET_PURCHASE && tx.status === TransactionStatus.CONFIRMED)
+    .reduce((sum, tx) => sum + tx.amount, 0)
+  
+  const totalDeposits = userTransactions
+    .filter(tx => tx.type === TransactionType.DEPOSIT && tx.status === TransactionStatus.CONFIRMED)
+    .reduce((sum, tx) => sum + tx.amount, 0)
+  
+  const recentTransactions = userTransactions.slice(0, 5).reverse()
+
+  return {
+    totalTickets,
+    activeRafflesParticipated,
+    totalSpent,
+    totalDeposits,
+    recentTransactions,
+    userTickets: userTickets.slice(0, 5),
+  }
+})
+
+/**
+ * Formata valor monetário
+ * @param {number} value - Valor a ser formatado
+ * @param {Currency} currency - Moeda
+ * @returns {string} Valor formatado
+ */
+function formatCurrency(value: number, currency: Currency = Currency.USDT): string {
+  const symbols: Record<Currency, string> = {
+    [Currency.SOL]: '◎',
+    [Currency.USDT]: '$',
+    [Currency.BRL]: 'R$',
+  }
+  return `${symbols[currency]}${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+
+/**
+ * Formata data
+ * @param {Date} date - Data
+ * @returns {string} Data formatada
+ */
+function formatDate(date: Date): string {
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date)
+}
+
+/**
+ * Obtém nome da rifa
+ * @param {string} raffleId - ID da rifa
+ * @returns {string} Nome da rifa
+ */
+function getRaffleName(raffleId: string): string {
+  const raffle = mockRaffles.find(r => r.id === raffleId)
+  return raffle?.name || 'Rifa não encontrada'
+}
+</script>
+
+<template>
+  <div class="w-full flex flex-col gap-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold tracking-tight">
+          {{ t('dashboard.title', 'Dashboard') }}
+        </h1>
+        <p class="text-muted-foreground">
+          {{ t('dashboard.subtitle', 'Gerencie suas rifas e tickets') }}
+        </p>
+      </div>
+      <Button @click="navigateTo('/raffles')">
+        {{ t('dashboard.viewRaffles', 'Ver Rifas') }}
+      </Button>
+    </div>
+
+    <!-- Cards de Estatísticas -->
+    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <Card>
+        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle class="text-sm font-medium">
+            {{ t('dashboard.totalTickets', 'Total de Tickets') }}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div class="text-2xl font-bold">
+            {{ stats.totalTickets }}
+          </div>
+          <p class="text-xs text-muted-foreground">
+            {{ t('dashboard.ticketsDescription', 'Tickets adquiridos') }}
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle class="text-sm font-medium">
+            {{ t('dashboard.activeRaffles', 'Rifas Participando') }}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div class="text-2xl font-bold">
+            {{ stats.activeRafflesParticipated }}
+          </div>
+          <p class="text-xs text-muted-foreground">
+            {{ t('dashboard.activeRafflesDescription', 'Rifas ativas') }}
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle class="text-sm font-medium">
+            {{ t('dashboard.totalSpent', 'Total Gasto') }}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div class="text-2xl font-bold">
+            {{ formatCurrency(stats.totalSpent) }}
+          </div>
+          <p class="text-xs text-muted-foreground">
+            {{ t('dashboard.totalSpentDescription', 'Em tickets') }}
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle class="text-sm font-medium">
+            {{ t('dashboard.totalDeposits', 'Total Depositado') }}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div class="text-2xl font-bold">
+            {{ formatCurrency(stats.totalDeposits) }}
+          </div>
+          <p class="text-xs text-muted-foreground">
+            {{ t('dashboard.totalDepositsDescription', 'Em sua conta') }}
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+
+    <!-- Últimos Tickets -->
+    <Card>
+      <CardHeader>
+        <div class="flex items-center justify-between">
+          <div>
+            <CardTitle>
+              {{ t('dashboard.recentTickets', 'Meus Últimos Tickets') }}
+            </CardTitle>
+            <CardDescription>
+              {{ t('dashboard.recentTicketsDescription', 'Tickets que você adquiriu recentemente') }}
+            </CardDescription>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            @click="navigateTo('/user-panel/my-tickets')"
+          >
+            {{ t('dashboard.viewAll', 'Ver Todos') }}
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div v-if="stats.userTickets.length > 0" class="space-y-4">
+          <div
+            v-for="ticket in stats.userTickets"
+            :key="ticket.id"
+            class="flex items-center justify-between p-4 border rounded-lg"
+          >
+            <div>
+              <p class="font-medium">
+                {{ getRaffleName(ticket.raffleId) }}
+              </p>
+              <p class="text-sm text-muted-foreground">
+                {{ t('dashboard.ticketNumber', 'Ticket') }} #{{ ticket.ticketNumber }}
+              </p>
+            </div>
+            <div class="text-right">
+              <Badge variant="outline">
+                {{ formatCurrency(ticket.price, ticket.currency) }}
+              </Badge>
+              <p class="text-xs text-muted-foreground mt-1">
+                {{ formatDate(ticket.purchasedAt) }}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div v-else class="text-center py-8 text-muted-foreground">
+          <p>{{ t('dashboard.noTickets', 'Você ainda não adquiriu nenhum ticket') }}</p>
+          <Button
+            class="mt-4"
+            variant="outline"
+            @click="navigateTo('/raffles')"
+          >
+            {{ t('dashboard.buyTickets', 'Comprar Tickets') }}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+
+    <!-- Transações Recentes -->
+    <Card>
+      <CardHeader>
+        <div class="flex items-center justify-between">
+          <div>
+            <CardTitle>
+              {{ t('dashboard.recentTransactions', 'Transações Recentes') }}
+            </CardTitle>
+            <CardDescription>
+              {{ t('dashboard.recentTransactionsDescription', 'Últimas movimentações na sua conta') }}
+            </CardDescription>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            @click="navigateTo('/user-panel/transactions')"
+          >
+            {{ t('dashboard.viewAll', 'Ver Todas') }}
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div v-if="stats.recentTransactions.length > 0" class="space-y-4">
+          <div
+            v-for="transaction in stats.recentTransactions"
+            :key="transaction.id"
+            class="flex items-center justify-between p-4 border rounded-lg"
+          >
+            <div class="flex items-center gap-4">
+              <div
+                class="flex h-10 w-10 items-center justify-center rounded-full"
+                :class="transaction.type === TransactionType.DEPOSIT ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'"
+              >
+                {{ transaction.type === TransactionType.DEPOSIT ? '+' : '-' }}
+              </div>
+              <div>
+                <p class="font-medium">
+                  {{ t(`transactions.type.${transaction.type}`, transaction.type) }}
+                </p>
+                <p class="text-sm text-muted-foreground">
+                  {{ formatDate(transaction.createdAt) }}
+                </p>
+              </div>
+            </div>
+            <div class="text-right">
+              <p
+                class="font-semibold"
+                :class="transaction.type === TransactionType.DEPOSIT ? 'text-green-600' : 'text-red-600'"
+              >
+                {{ transaction.type === TransactionType.DEPOSIT ? '+' : '-' }}{{ formatCurrency(transaction.amount, transaction.currency) }}
+              </p>
+              <Badge
+                :variant="transaction.status === TransactionStatus.CONFIRMED ? 'default' : 'secondary'"
+                class="mt-1"
+              >
+                {{ t(`transactions.status.${transaction.status}`, transaction.status) }}
+              </Badge>
+            </div>
+          </div>
+        </div>
+        <div v-else class="text-center py-8 text-muted-foreground">
+          <p>{{ t('dashboard.noTransactions', 'Nenhuma transação encontrada') }}</p>
+        </div>
+      </CardContent>
+    </Card>
+  </div>
+</template>
+
+<style scoped>
+</style>
+

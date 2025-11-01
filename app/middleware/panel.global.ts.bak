@@ -1,0 +1,20 @@
+/**
+ * @fileoverview Middleware global para aplicar nas rotas do painel
+ * @module middleware/panel.global
+ * @author Raffle System
+ */
+
+export default defineNuxtRouteMiddleware((to, from) => {
+  // Aplica apenas nas rotas /panel/*
+  if (!to.path.startsWith('/panel')) {
+    return
+  }
+
+  // Em desenvolvimento, não aplica nenhuma verificação
+  // Em produção, descomente a verificação abaixo
+  // const { isAuthenticated } = useAuth()
+  // if (!isAuthenticated.value) {
+  //   return navigateTo('/login')
+  // }
+})
+
